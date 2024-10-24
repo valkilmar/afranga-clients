@@ -194,8 +194,14 @@ class ClientController extends Controller
      */
     public function download(Request $request, string $exportId, string $path) {
 
-        return Storage::disk('local')->download($exportId . '/' . $path);
+        try {
+            $res = Storage::disk('local')->download($exportId . '/' . $path);
+            return $res;
+        } catch (\Exception $ex) {
+            $message = $this->formatMessage('danger', "That file is expired. You can try with a fresh export.");
 
+            return redirect()->route('client-index')->with('message', $message);
+        }
     }
 
 
