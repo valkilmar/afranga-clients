@@ -17,10 +17,15 @@ class PhoneFactory extends Factory
      */
     public function definition(): array
     {
+
+        $date = date('Y-m-d H:i:s', time() - rand(999, 9999999));
+        
         return [
             'client_id' => fake()->randomElement(Client::pluck('id')),
             //'client_id' => Client::factory(),
             'number' => fake()->numerify('##########'),
+            'created_at' => $date,
+            'updated_at' => $date
         ];
     }
 }

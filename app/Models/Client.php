@@ -31,7 +31,7 @@ class Client extends Model
      */
     public function phones()
     {
-        return $this->hasMany(Phone::class)->orderBy('created_at', 'asc');
+        return $this->hasMany(Phone::class)->orderBy('created_at', 'desc');
     }
 
 

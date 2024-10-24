@@ -73,21 +73,42 @@
 
             {{-- Client list --}}
             <div class="col-9">
-                <ul class="list-group">
-                    @foreach ($clients as $client)
-                        <li class="list-group-item">
-                            <a class="mr-3" href="{{ route('client-edit', [$client]) }}">{{ $client->name }}</a>
-                            <a class="btn btn-sm btn-outline-danger mr-3"
-                                href="{{ route('client-delete', [$client]) }}">X</a>
-                            <small><b>PN</b> {{ $client->personal_no }}</small>
-                            <small><b>CardNo</b> {{ $client->card_no }}</small>
-                            <small class="text-secondary"><i>({{ $client->updated_at }})</i></small><br />
-                            @foreach ($client->phones as $i => $phone)
-                                <small><span class="text-info">{{ $i + 1 }})</span> {{ $phone->number }}</small>
-                            @endforeach
-                        </li>
-                    @endforeach
-                </ul>
+                <table class="table table-striped">
+
+                    <body>
+                        @foreach ($clients as $client)
+                            @php
+                                $phonesCount = $client->phones->count();
+                            @endphp
+                            <tr>
+                                <td>
+                                    <a class="mr-3" href="{{ route('client-edit', [$client]) }}">{{ $client->name }}</a>
+                                    <br />
+                                    <small><b>PN</b> {{ $client->personal_no }}</small>
+                                    <small><b>CardNo</b> {{ $client->card_no }}</small>
+                                    @if ($phonesCount > 0)
+                                        <small><b>PHONES ({{ $phonesCount }})</b></small>
+                                        @foreach ($client->phones as $i => $phone)
+                                            @if ($i <= 1)
+                                                <small><span class="text-info">{{ $i + 1 }})</span>
+                                                    {{ $phone->number }}</small>
+                                            @endif
+                                        @endforeach
+                                        @if ($phonesCount > 2)
+                                            ...
+                                        @endif
+                                    @endif
+                                </td>
+
+                                <td>
+                                    <a class="btn btn-sm btn-outline-danger mr-3"
+                                        href="{{ route('client-delete', [$client]) }}">X</a><br />
+                                    <small class="ml-3"><i>{{ $client->updated_at }}</i></small>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </body>
+                </table>
             </div>
         </div>
     </div>
