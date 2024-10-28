@@ -14,7 +14,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
     }
 
     /**
@@ -22,7 +21,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-
         // Due to https://github.com/laravel/framework/issues/17508
         Schema::defaultStringLength(191);
 

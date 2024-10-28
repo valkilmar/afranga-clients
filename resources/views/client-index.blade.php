@@ -6,6 +6,11 @@
 
 @section('content')
 
+    <style>
+        #exports-wrapper a {
+            font-size: 0.7rem;
+        }
+    </style>
 
     <div class="container mt-3">
         <div class="row">
@@ -41,33 +46,22 @@
                             aria-expanded="false">EXPORT
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ route('client-export', [1000]) }}">1000 per file</a></li>
-                            <li><a class="dropdown-item" href="{{ route('client-export', [100]) }}">100 per file</a></li>
-                            <li><a class="dropdown-item" href="{{ route('client-export', [10]) }}">10 per file</a></li>
+                            <li><a class="dropdown-item action-export" href="{{ route('client-export', [1000]) }}">1000 per file</a></li>
+                            <li><a class="dropdown-item action-export" href="{{ route('client-export', [100]) }}">100 per file</a></li>
+                            <li><a class="dropdown-item action-export" href="{{ route('client-export', [10]) }}">10 per file</a></li>
                         </ul>
                     </li>
                 </ul>
-
-                @if ($exportStatus)
-                    <h5>Exports available</h5>
-                    <small>
-                        @if ($exportStatus['timeDone'] < 0)
-                            Processing...
-                        @else
-                            Expire in {{ $exportStatus['timeLeft'] }} sec.
+                    <h5>Exports</h5>
+                    <table class="table table-condensed table-striped" id="exports-wrapper">
+                        @if (!empty($exportStatus['files']))
+                        @foreach ($exportStatus['files'] as $fileName => $url)
+                            <tr>
+                                <td><a href="{{ $url }}">{{ $fileName }}</a></td>
+                            </tr>
+                        @endforeach
                         @endif
-                    </small>
-                    <table class="table table-condensed table-striped">
-
-                        <body>
-                            @foreach ($exportStatus['files'] as $fileName => $url)
-                                <tr>
-                                    <td><a href="{{ $url }}">{{ $fileName }}</a></td>
-                                </tr>
-                            @endforeach
-                        </body>
                     </table>
-                @endif
             </div>
 
 
@@ -112,5 +106,36 @@
             </div>
         </div>
     </div>
+
+    <script>
+        
+        $(window).on('load', function() {
+            console.log(Echo.channel('export.ready'));
+            Echo.channel('export.ready')
+                .listen("ExportReadyEvent", (data) => {
+                  console.log(data);
+                  let $row = $('<tr><td><a href="' + data.url + '">' + data.fileName + '</a></td></tr>');
+                  $('#exports-wrapper').prepend($row);
+                });
+        });
+
+        $(document).on('click', '.action-export', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $.ajax({
+                type : 'GET',
+                url : $(this).attr('href'),
+                
+                success : function(response) {
+
+                    console.log(response);
+                },
+        
+                error : function(qxhr) {
+                    console.error(qxhr);
+                },
+           });
+        });
+    </script>
 
 @endsection

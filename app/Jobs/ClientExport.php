@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Events\ExportReadyEvent;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -12,6 +13,7 @@ use Spatie\SimpleExcel\SimpleExcelWriter;
 use App\Models\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Broadcast;
 
 class ClientExport implements ShouldQueue
 {
@@ -19,7 +21,7 @@ class ClientExport implements ShouldQueue
 
     const DEFAULT_CHUNK_SIZE = 10;
 
-    const DEFAULT_EXPIRE_AFTER = 300;
+    const DEFAULT_EXPIRE_AFTER = 3600;
 
     /**
      * Create a new job instance.
@@ -38,8 +40,6 @@ class ClientExport implements ShouldQueue
     public function handle(): void
     {
 
-        $part = 1;
-        
         $writer = null;
 
         $filePath = null;
@@ -52,7 +52,7 @@ class ClientExport implements ShouldQueue
 
             if (is_null($writer)) {
 
-                $filePath = $this->getTargetFilePath($part);
+                $filePath = $this->getTargetFilePath();
 
                 $writer = SimpleExcelWriter::create(Storage::path($filePath));
 
@@ -68,8 +68,6 @@ class ClientExport implements ShouldQueue
                 $this->updateExportStatus($filePath, false);
 
                 $writer = null;
-
-                $part++;
             }
         }
 
@@ -161,26 +159,29 @@ class ClientExport implements ShouldQueue
                 "{$this->exportId}/{$fileNameReady}", now()->addSeconds(self::DEFAULT_EXPIRE_AFTER)
             );
 
+            Log::debug($url);
+
             $status['files'][$fileNameReady] = $url;
+
+            broadcast(new ExportReadyEvent([
+                'url' => $url,
+                'fileName' => $fileNameReady
+            ]));
 
         }
         if ($done) {
-
             $status['timeDone'] = time();
-
         }
 
         Storage::put(self::getStatusFilePath($this->exportId), json_encode($status));
     }
 
 
-    private function getTargetFilePath(int $part) {
+    private function getTargetFilePath() {
 
-        $timestamp = date('Ymd');
+        $timestamp = microtime();
 
-        $partFormatted = sprintf("%'.03d", $part);
-
-        $filePath = "{$this->exportId}/export_{$timestamp}_{$partFormatted}.xlsx";
+        $filePath = "{$this->exportId}/export_{$timestamp}.xlsx";
 
         Storage::put($filePath, '');
 

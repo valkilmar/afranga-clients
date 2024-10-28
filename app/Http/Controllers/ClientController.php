@@ -179,7 +179,8 @@ class ClientController extends Controller
 
         $message = $this->formatMessage('success', "Exporting {$chunkSize} per file started... Download links coming soon.");
 
-        return redirect()->route('client-index')->with('message', $message);
+        return response()->json(['message' => $message]);
+        // return redirect()->route('client-index')->with('message', $message);
     }
 
     
