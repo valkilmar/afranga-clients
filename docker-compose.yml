@@ -1,0 +1,54 @@
+networks:
+  laravel:
+
+services:
+  app_clients:
+    image: app_clients
+    container_name: app_clients
+    build:
+      target: web
+      context: .
+    env_file:
+      - .env
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - mysql_clients
+    networks:
+      - laravel
+
+  node_clients:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    image: node
+    container_name: node_clients
+    ports:
+    - "3009:3009"
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - /var/www/html
+      - /var/www/html/node_modules
+    networks:
+      - laravel
+
+  mysql_clients:
+    container_name: mysql_clients
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: 'afranga_clients'
+      MYSQL_USER: 'afuser'
+      MYSQL_PASSWORD: 'afpass'
+      MYSQL_ROOT_PASSWORD: 'afpass'
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - laravel
+
+volumes:
+  dbdata:
